@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Build custom 2026 NFL power rankings from Brandon Anderson's unit rankings.">
+  <title>Gridiron Index — 2026 NFL Power Rankings</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="#top" aria-label="Gridiron Index home"><span class="brand-mark">GI</span><span>GRIDIRON <b>INDEX</b></span></a>
+    <nav><a href="#rankings">Rankings</a><a href="#methodology">Methodology</a></nav>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <div class="eyebrow"><span></span> 2026 PRESEASON MODEL</div>
+      <h1>Your weights.<br><em>Your power rankings.</em></h1>
+      <p>Five expert rankings. One adjustable model. Tune what matters, and watch the league reorder in real time.</p>
+      <div class="hero-meta"><span>32 teams</span><span>5 inputs</span><span>Live model</span></div>
+    </section>
+
+    <section class="model" id="rankings">
+      <aside class="controls" aria-label="Model controls">
+        <div class="controls-head">
+          <div><span class="kicker">MODEL INPUTS</span><h2>Set your weights</h2></div>
+          <button class="reset" id="resetBtn" type="button">Reset</button>
+        </div>
+        <p class="hint">Weights are automatically normalized to 100%.</p>
+        <div id="sliders"></div>
+        <div class="weight-total"><span>ACTIVE WEIGHT</span><strong id="activeWeight">100%</strong></div>
+        <div class="presets" aria-label="Weight presets">
+          <span>QUICK SET</span>
+          <div>
+            <button type="button" data-preset="balanced">Balanced</button>
+            <button type="button" data-preset="offense">Offense first</button>
+            <button type="button" data-preset="trenches">Win the trenches</button>
+          </div>
+        </div>
+      </aside>
+
+      <div class="rankings-panel">
+        <div class="panel-head">
+          <div><span class="kicker">COMPOSITE OUTPUT</span><h2>League table</h2></div>
+          <label class="search"><span aria-hidden="true">⌕</span><input id="searchInput" type="search" placeholder="Find a team" aria-label="Find a team"></label>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th class="rank-col">RK</th><th>TEAM</th><th class="score-col">INDEX</th><th>QB</th><th>DEF</th><th>COACH</th><th>OL</th><th>SKILL</th></tr></thead>
+            <tbody id="rankingsBody"></tbody>
+          </table>
+        </div>
+        <div class="legend"><span><i class="dot elite"></i>Top 10</span><span><i class="dot middle"></i>11–22</span><span><i class="dot low"></i>23–32</span><span>Source ranks: 1 is best</span></div>
+      </div>
+    </section>
+
+    <section class="methodology" id="methodology">
+      <div><span class="kicker">HOW IT WORKS</span><h2>Ranks in. Signal out.</h2></div>
+      <div class="method-grid">
+        <article><b>01</b><h3>Convert</h3><p>Each source rank is converted to a 0–100 strength score. No. 1 earns 100; No. 32 earns 3.125.</p></article>
+        <article><b>02</b><h3>Weight</h3><p>Your five slider values are normalized, so they always combine into one complete model.</p></article>
+        <article><b>03</b><h3>Sort</h3><p>The weighted strength scores are added, then teams are reordered from highest index to lowest.</p></article>
+      </div>
+      <div class="formula"><span>COMPOSITE</span><code>Σ [ weight<sub>i</sub> × (33 − rank<sub>i</sub>) / 32 ]</code></div>
+      <div class="source-note">
+        <p>Inputs are Brandon Anderson’s 2026 preseason rankings for <a href="https://www.actionnetwork.com/nfl/2026-nfl-coaching-staff-rankings-for-all-32-teams" target="_blank" rel="noreferrer">coaching</a>, <a href="https://www.actionnetwork.com/nfl/2026-nfl-offensive-line-rankings-for-every-team" target="_blank" rel="noreferrer">offensive line</a>, <a href="https://www.actionnetwork.com/nfl/2026-nfl-skill-position-rankings-for-every-team" target="_blank" rel="noreferrer">skill positions</a>, <a href="https://www.actionnetwork.com/nfl/2026-nfl-quarterback-rankings-for-every-week-1-starting-qb" target="_blank" rel="noreferrer">quarterback</a>, and <a href="https://www.actionnetwork.com/nfl/2026-nfl-defense-rankings-all-32-teams-ranked" target="_blank" rel="noreferrer">defense</a>.</p>
+        <p class="fine">Data accessed Aug. 30, 2026. The QB article repeats No. 24 in its headings; its stated AFC South summary confirms Cam Ward at No. 23, so the model uses the consistent sequence: Mendoza 22, Ward 23, Shough 24. This independent tool is not affiliated with Action Network.</p>
+      </div>
+    </section>
+  </main>
+  <footer><span>GRIDIRON INDEX / 2026</span><span>Built for exploration, not prediction.</span></footer>
+  <script src="app.js"></script>
+</body>
+</html>
