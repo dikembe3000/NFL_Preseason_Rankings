@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Adjustable 2026 NFL power rankings and schedule-neutral win projections.">
+  <title>Gridiron Index — Power Rankings & Win Projections</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="#top" aria-label="Gridiron Index home"><span class="brand-mark">GI</span><span>GRIDIRON <b>INDEX</b></span></a>
+    <nav><a href="#rankings">Rankings</a><a href="#methodology">Methodology</a></nav>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <div class="eyebrow"><span></span> 2026 PRESEASON MODEL</div>
+      <h1>Your weights.<br><em>Your power rankings.</em></h1>
+      <p>Five expert rankings. One adjustable model. Tune what matters, then compare the composite table with schedule-neutral expected wins.</p>
+      <div class="hero-meta"><span>32 teams</span><span>5 inputs</span><span>Live projections</span></div>
+    </section>
+
+    <section class="model" id="rankings">
+      <aside class="controls" aria-label="Model controls">
+        <div class="controls-head">
+          <div><span class="kicker">MODEL INPUTS</span><h2>Set your weights</h2></div>
+          <button class="reset" id="resetBtn" type="button">Reset</button>
+        </div>
+        <p class="hint">Weights are automatically normalized to 100%. Both tabs update immediately.</p>
+        <div id="sliders"></div>
+        <div class="weight-total"><span>ACTIVE WEIGHT</span><strong id="activeWeight">100%</strong></div>
+        <div class="presets" aria-label="Weight presets">
+          <span>QUICK SET</span>
+          <div>
+            <button type="button" data-preset="balanced">Balanced</button>
+            <button type="button" data-preset="offense">Offense first</button>
+            <button type="button" data-preset="trenches">Win the trenches</button>
+          </div>
+        </div>
+      </aside>
+
+      <div class="rankings-panel">
+        <div class="panel-head">
+          <div><span class="kicker">LIVE MODEL OUTPUT</span><h2>League projections</h2></div>
+          <label class="search"><span aria-hidden="true">⌕</span><input id="searchInput" type="search" placeholder="Find a team" aria-label="Find a team"></label>
+        </div>
+        <div class="table-tabs" role="tablist" aria-label="Projection tables">
+          <button id="rankingsTab" class="table-tab active" type="button" role="tab" aria-selected="true" aria-controls="rankingsTable" data-view="rankings">Composite table</button>
+          <button id="winsTab" class="table-tab" type="button" role="tab" aria-selected="false" aria-controls="rankingsTable" data-view="wins">Schedule-neutral win projections</button>
+        </div>
+        <div class="projection-note" id="projectionNote" hidden>
+          <span>17-GAME NEUTRAL BASELINE</span>
+          <p>Expected records reflect ranking strength only—before schedule, rest, travel, injuries, and matchup adjustments.</p>
+        </div>
+        <div class="table-wrap">
+          <table id="rankingsTable">
+            <thead id="rankingsHead"></thead>
+            <tbody id="rankingsBody"></tbody>
+          </table>
+        </div>
+        <div class="legend"><span><i class="dot elite"></i>Top 10</span><span><i class="dot middle"></i>11–22</span><span><i class="dot low"></i>23–32</span><span>Source ranks: 1 is best</span></div>
+      </div>
+    </section>
+
+    <section class="methodology" id="methodology">
+      <div><span class="kicker">HOW IT WORKS</span><h2>Ranks in. Two outputs.</h2></div>
+      <div class="method-grid">
+        <article><b>01</b><h3>Composite</h3><p>Each source rank becomes a 0–100 strength score and is multiplied by your normalized category weight.</p></article>
+        <article><b>02</b><h3>Project</h3><p>Team indices are standardized around 8.5 wins, using a 2.15-win talent spread across a 17-game season.</p></article>
+        <article><b>03</b><h3>Recalculate</h3><p>Every slider and preset updates both the composite rankings and schedule-neutral win projections.</p></article>
+      </div>
+      <div class="formula"><span>EXPECTED WINS</span><code>8.5 + 2.15 × [(index − league mean) / index SD]</code></div>
+      <div class="source-note">
+        <p>Inputs are Brandon Anderson’s 2026 preseason rankings for <a href="https://www.actionnetwork.com/nfl/2026-nfl-coaching-staff-rankings-for-all-32-teams" target="_blank" rel="noreferrer">coaching</a>, <a href="https://www.actionnetwork.com/nfl/2026-nfl-offensive-line-rankings-for-every-team" target="_blank" rel="noreferrer">offensive line</a>, <a href="https://www.actionnetwork.com/nfl/2026-nfl-skill-position-rankings-for-every-team" target="_blank" rel="noreferrer">skill positions</a>, <a href="https://www.actionnetwork.com/nfl/2026-nfl-quarterback-rankings-for-every-week-1-starting-qb" target="_blank" rel="noreferrer">quarterback</a>, and <a href="https://www.actionnetwork.com/nfl/2026-nfl-defense-rankings-all-32-teams-ranked" target="_blank" rel="noreferrer">defense</a>.</p>
+        <p class="fine">Schedule-neutral projections total 272 expected league wins. Data accessed Aug. 30, 2026. This independent tool is not affiliated with Action Network.</p>
+      </div>
+    </section>
+  </main>
+  <footer><span>GRIDIRON INDEX / 2026</span><span>Built for exploration, not prediction.</span></footer>
+  <script src="app.js"></script>
+</body>
+</html>
