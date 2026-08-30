@@ -1,0 +1,119 @@
+/**
+ * Fourth Down Forecast — standalone 2026 NFL win-total model
+ * Browser: const results = NFLWinTotalsModel.calculate();
+ * Node:    const model = require('./nfl-win-totals-model.js');
+ */
+(function (root, factory) {
+  const api = factory();
+  if (typeof module === 'object' && module.exports) module.exports = api;
+  root.NFLWinTotalsModel = api;
+})(typeof globalThis !== 'undefined' ? globalThis : this, function () {
+  'use strict';
+
+  // team, abbreviation, QB, defense, OL, skill, coaching, prior wins,
+  // uncertainty multiplier, BetUS total, over odds, under odds
+  const rows = [
+    ['Arizona Cardinals','ARI',31,28,24,7,28,5.64,1.25,4.5,150,-180],
+    ['Atlanta Falcons','ATL',29,30,11,6,24,7.96,1.15,7.5,110,-140],
+    ['Baltimore Ravens','BAL',4,4,15,22,17,10.06,.95,11.5,140,-170],
+    ['Buffalo Bills','BUF',1,24,6,15,25,10.63,1.05,10.5,-135,105],
+    ['Carolina Panthers','CAR',27,29,27,28,20,6.44,1.05,7.5,105,-135],
+    ['Chicago Bears','CHI',13,15,7,11,3,8.57,1.05,9.5,105,-135],
+    ['Cincinnati Bengals','CIN',3,25,20,5,31,8.43,1.10,10.5,105,-135],
+    ['Cleveland Browns','CLE',32,26,32,30,29,7.21,1.25,5.5,-125,-105],
+    ['Dallas Cowboys','DAL',7,16,12,4,18,7.33,1.10,9.5,-115,-115],
+    ['Denver Broncos','DEN',20,9,1,17,9,10.86,.95,9.5,-135,105],
+    ['Detroit Lions','DET',18,12,17,2,15,10.24,1.10,10.5,-130,100],
+    ['Green Bay Packers','GB',5,23,28,12,11,8.95,1.20,9.5,-140,110],
+    ['Houston Texans','HOU',16,1,25,24,10,11.06,1.00,9.5,-160,130],
+    ['Indianapolis Colts','IND',28,22,3,18,12,7.86,1.15,7.5,-145,115],
+    ['Jacksonville Jaguars','JAX',11,13,30,13,7,9.88,1.05,9.5,120,-150],
+    ['Kansas City Chiefs','KC',2,8,8,16,5,8.37,.90,10.5,115,-145],
+    ['Las Vegas Raiders','LV',23,31,21,26,23,4.87,1.20,5.5,-150,120],
+    ['Los Angeles Chargers','LAC',9,20,4,21,4,8.61,1.00,9.5,-145,115],
+    ['Los Angeles Rams','LAR',8,5,10,1,2,10.62,.95,11.5,-140,110],
+    ['Miami Dolphins','MIA',26,32,26,32,26,7.05,1.25,4.5,145,-175],
+    ['Minnesota Vikings','MIN',17,10,13,3,8,9.80,1.05,8.5,-135,105],
+    ['New England Patriots','NE',6,7,21,9,16,10.12,.90,9.5,-155,125],
+    ['New Orleans Saints','NO',24,14,24,27,19,7.56,1.05,7.5,-120,-110],
+    ['New York Giants','NYG',25,17,19,29,13,6.62,1.15,7.5,100,-130],
+    ['New York Jets','NYJ',21,18,23,25,32,5.19,1.20,5.5,-120,-110],
+    ['Philadelphia Eagles','PHI',15,3,5,10,14,10.57,1.00,10.5,115,-140],
+    ['Pittsburgh Steelers','PIT',30,6,18,19,27,8.87,1.05,8.5,110,-140],
+    ['San Francisco 49ers','SF',10,19,9,8,1,9.52,1.15,10.5,130,-160],
+    ['Seattle Seahawks','SEA',19,2,16,14,6,12.17,.90,10.5,-125,-105],
+    ['Tampa Bay Buccaneers','TB',12,11,2,16,22,8.40,1.05,7.5,-150,120],
+    ['Tennessee Titans','TEN',24,21,31,30,30,5.23,1.20,6.5,100,-130],
+    ['Washington Commanders','WAS',14,27,29,20,21,7.32,1.20,8.5,150,-180]
+  ];
+
+  const teams = rows.map(r => ({
+    team:r[0], abbr:r[1], qb:r[2], defense:r[3], offensiveLine:r[4],
+    skill:r[5], coaching:r[6], priorWins:r[7], uncertainty:r[8],
+    line:r[9], overOdds:r[10], underOdds:r[11]
+  }));
+
+  const defaultWeights = {
+    quarterback:24, defense:24, offensiveLine:11,
+    skill:11, coaching:12, prior:18
+  };
+
+  const clamp = (x, low, high) => Math.max(low, Math.min(high, x));
+  const rankZ = rank => (16.5 - rank) / 9.2331;
+  const impliedProbability = odds => odds < 0 ? -odds / (-odds + 100) : 100 / (odds + 100);
+  const profitPer100 = odds => odds < 0 ? 10000 / -odds : odds;
+
+  function normalCDF(x) {
+    const t = 1 / (1 + .2316419 * Math.abs(x));
+    const d = .3989423 * Math.exp(-x * x / 2);
+    let p = 1 - d * t * (.319381530 + t * (-.356563782 + t * (1.781477937 + t * (-1.821255978 + t * 1.330274429))));
+    return x >= 0 ? p : 1 - p;
+  }
+
+  function fairAmericanOdds(p) {
+    if (p <= 0 || p >= 1) return null;
+    return Math.round(p >= .5 ? -100 * p / (1 - p) : 100 * (1 - p) / p);
+  }
+
+  function calculate(options = {}) {
+    const data = (options.teams || teams).map(t => ({...t}));
+    const weights = {...defaultWeights, ...(options.weights || {})};
+    const seasonSD = options.seasonSD == null ? 2.15 : +options.seasonSD;
+    const marketBlend = clamp(options.marketBlend == null ? 0 : +options.marketBlend, 0, .35);
+    const priorMean = data.reduce((sum,t) => sum + t.priorWins, 0) / data.length;
+    const priorSD = Math.sqrt(data.reduce((sum,t) => sum + (t.priorWins-priorMean)**2, 0)/(data.length-1)) || 1;
+    const weightTotal = Object.values(weights).reduce((a,b) => a + b, 0) || 1;
+
+    let scored = data.map(t => ({...t, strength:(
+      weights.quarterback * rankZ(t.qb) +
+      weights.defense * rankZ(t.defense) +
+      weights.offensiveLine * rankZ(t.offensiveLine) +
+      weights.skill * rankZ(t.skill) +
+      weights.coaching * rankZ(t.coaching) +
+      weights.prior * ((t.priorWins-priorMean)/priorSD)
+    ) / weightTotal}));
+
+    const meanStrength = scored.reduce((sum,t) => sum + t.strength, 0) / scored.length;
+    scored = scored.map(t => ({...t, uncorrectedWins:8.5 + 2.05*(t.strength-meanStrength)}));
+    const leagueCorrection = (272-scored.reduce((sum,t) => sum+t.uncorrectedWins,0))/scored.length;
+
+    return scored.map(t => {
+      const expectedWins = clamp((t.uncorrectedWins+leagueCorrection)*(1-marketBlend)+t.line*marketBlend,1.5,14.5);
+      const winSD = seasonSD*t.uncertainty;
+      const overProbability = 1-normalCDF((t.line-expectedWins)/winSD);
+      const underProbability = 1-overProbability;
+      const sides = [
+        {side:'Over', odds:t.overOdds, probability:overProbability},
+        {side:'Under', odds:t.underOdds, probability:underProbability}
+      ].map(x => {
+        const breakEven = impliedProbability(x.odds);
+        const ev = x.probability*profitPer100(x.odds)-(1-x.probability)*100;
+        return {...x,breakEven,probabilityEdge:x.probability-breakEven,evPer100:ev,roi:ev/100,fairOdds:fairAmericanOdds(x.probability)};
+      });
+      const bestBet = sides.reduce((best,x) => x.evPer100>best.evPer100?x:best);
+      return {...t,expectedWins,winSD,overProbability,underProbability,sides,bestBet};
+    }).sort((a,b) => b.bestBet.evPer100-a.bestBet.evPer100);
+  }
+
+  return {teams, defaultWeights, calculate, impliedProbability, fairAmericanOdds};
+});
